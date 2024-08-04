@@ -117,6 +117,25 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    internal void RestartGame()
+    {
+        m_boardController.Clear();
+        m_boardController.StartGame(this, m_gameSettings);
+        eLevelMode mode = m_levelCondition is LevelMoves ? eLevelMode.MOVES : eLevelMode.TIMER;
+        if (mode == eLevelMode.MOVES)
+        {
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), m_boardController);
+        }
+        else if (mode == eLevelMode.TIMER)
+        {
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), this);
+        }
+
+        m_levelCondition.ConditionCompleteEvent += GameOver;
+        State = eStateGame.GAME_STARTED;
+
+    }
+
     private IEnumerator WaitBoardController()
     {
         while (m_boardController.IsBusy)
