@@ -59,4 +59,22 @@ public class NormalItem : Item
 
         return it != null && it.ItemType == this.ItemType;
     }
+
+    public override void SetView()
+    {
+        //string prefabname = GetPrefabName();
+
+        //if (!string.IsNullOrEmpty(prefabname))
+        //{
+        //    GameObject prefab = Resources.Load<GameObject>(prefabname);
+        //    if (prefab)
+        //    {
+        //        View = GameObject.Instantiate(prefab).transform;
+        //    }
+        //}
+        GameObject gameobject = new GameObject();
+        SpriteRenderer sprite = gameobject.AddComponent<SpriteRenderer>();
+        sprite.sprite = ItemDataGroup.Intance.GetSpriteByType(ItemType);
+        View = gameobject.transform;
+    }
 }
