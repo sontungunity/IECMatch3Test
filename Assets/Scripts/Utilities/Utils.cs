@@ -24,4 +24,10 @@ public class Utils
 
         return result;
     }
+
+    public static List<T> GetEnumList<T>() where T : Enum
+    {
+        List<T> enumList = new List<T>((T[])Enum.GetValues(typeof(T)));
+        return enumList;
+    }
 }

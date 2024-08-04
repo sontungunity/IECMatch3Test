@@ -53,7 +53,7 @@ public class Board
 
                 Cell cell = go.GetComponent<Cell>();
                 cell.Setup(x, y);
-
+                cell.gameObject.name = $"Cell_{x}_{y}";
                 m_cells[x, y] = cell;
             }
         }
@@ -135,27 +135,122 @@ public class Board
         }
     }
 
-
+    //Create dicItem_Amount
+    Dictionary<NormalItem.eNormalType, int> dicItem_Amount = new Dictionary<NormalItem.eNormalType, int>();
+    List<NormalItem.eNormalType> listTypeNormal = Utils.GetEnumList<NormalItem.eNormalType>();
+    List<NormalItem.eNormalType> lstTypeAround = new List<NormalItem.eNormalType>();
     internal void FillGapsWithNewItems()
     {
+        //for (int x = 0; x < boardSizeX; x++)
+        //{
+        //    for (int y = 0; y < boardSizeY; y++)
+        //    {
+        //        Cell cell = m_cells[x, y];
+        //        if (!cell.IsEmpty) continue;
+
+        //        NormalItem item = new NormalItem();
+
+        //        item.SetType(Utils.GetRandomNormalType());
+        //        item.SetView();
+        //        item.SetViewRoot(m_root);
+
+        //        cell.Assign(item);
+        //        cell.ApplyItemPosition(true);
+        //    }
+        //}
+        //Setup dic : amount -> 0
+        foreach (var type in listTypeNormal)
+        {
+            dicItem_Amount[type] = 0;
+        }
+
+        //Count in board :
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
             {
                 Cell cell = m_cells[x, y];
-                if (!cell.IsEmpty) continue;
+                if (!cell.IsEmpty)
+                {
+                    if (cell.Item is NormalItem normalItem)
+                    {
+                        dicItem_Amount[normalItem.ItemType]++; // NormalItem -> AmountOfType on Dic ++;
+                    }
+                }
+                else
+                {
+                    List<NormalItem.eNormalType> lstTypeAround = LstTypeAround(cell);
+                    NormalItem.eNormalType typeNew = default;
+                    int amoutnType = m_cells.Length;
+                    foreach (var type in listTypeNormal)
+                    {
+                        if (!lstTypeAround.Contains(type) && dicItem_Amount[type] < amoutnType) // different from the 4 surrounding cells and choosing the type of item that has the least amount
+                        {
+                            typeNew = type;
+                            amoutnType = dicItem_Amount[type];
+                        }
+                    }
+                    NormalItem item = new NormalItem();
+                    item.SetType(typeNew);
+                    item.SetView();
+                    item.SetViewRoot(m_root);
 
-                NormalItem item = new NormalItem();
-
-                item.SetType(Utils.GetRandomNormalType());
-                item.SetView();
-                item.SetViewRoot(m_root);
-
-                cell.Assign(item);
-                cell.ApplyItemPosition(true);
+                    cell.Assign(item);
+                    cell.ApplyItemPosition(true);
+                    dicItem_Amount[typeNew]++; // add ItemNew on Board
+                }
             }
         }
     }
+    #region _Stung
+    private List<NormalItem.eNormalType> LstTypeAround(Cell cellRoot)
+    {
+        lstTypeAround.Clear();
+        //Get Top
+        var typeTop = GetTypeNormalOfCell(cellRoot, Vector2Int.up);
+        if (typeTop.HasValue)
+        {
+            lstTypeAround.Add(typeTop.Value);
+        }
+        //Get Bot
+        var typeBot = GetTypeNormalOfCell(cellRoot, Vector2Int.down);
+        if (typeBot.HasValue)
+        {
+            lstTypeAround.Add(typeBot.Value);
+        }
+        //Get Left
+        var typeLeft = GetTypeNormalOfCell(cellRoot, Vector2Int.left);
+        if (typeLeft.HasValue)
+        {
+            lstTypeAround.Add(typeLeft.Value);
+        }
+        //Get Right
+        var typeRight = GetTypeNormalOfCell(cellRoot, Vector2Int.right);
+        if (typeRight.HasValue)
+        {
+            lstTypeAround.Add(typeRight.Value);
+        }
+        return lstTypeAround;
+    }
+
+    private NormalItem.eNormalType? GetTypeNormalOfCell(Cell cellRoot, Vector2Int vectorCell)
+    {
+        int boardX_CellVector = cellRoot.BoardX + vectorCell.x;
+        int boardY_CellVector = cellRoot.BoardY + vectorCell.y;
+
+        if (boardX_CellVector >= 0 && boardX_CellVector < this.boardSizeX
+            && boardY_CellVector >= 0 && boardY_CellVector < this.boardSizeY) // Check cellvector on board
+        {
+            Cell cell_Vector = m_cells[boardX_CellVector, boardY_CellVector];
+            if (!cell_Vector.IsEmpty && cell_Vector.Item is NormalItem normalItemCover)
+            {
+                return normalItemCover.ItemType;
+            }
+        }
+        return null;
+    }
+    #endregion
+
 
     internal void ExplodeAllItems()
     {
@@ -350,7 +445,7 @@ public class Board
         var dir = GetMatchDirection(matches);
 
         var bonus = matches.Where(x => x.Item is BonusItem).FirstOrDefault();
-        if(bonus == null)
+        if (bonus == null)
         {
             return matches;
         }
