@@ -31,7 +31,7 @@ public class ItemDataGroup : ScriptableObject
 public class ItemData
 {
     [SerializeField] private NormalItem.eNormalType type;
-    [SerializeField] private Sprite sprite;
+    [SerializeField, SpriteFieldAttribute] private Sprite sprite;
     public NormalItem.eNormalType Type => type;
     public Sprite Sprite => sprite;
 }
